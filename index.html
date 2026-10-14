@@ -1,30 +1,149 @@
-APA
-APA League Predictor & Captain Brain Pro
-Unified Equalizer & Psychology Engine
-Format: 8-Ball
-Offline Ready
-Match Predictor
-Teams & Rosters (CRUD)
-Scouting Reports & Standings
-Captain Brain Analytics
-Match Simulation Setup
-Select APA format, choose competing teams, set iterations, and generate predicted matchup probabilities[span_4](start_span)[span_4](end_span).
-APA Format
-								8-Ball (SL 2-7)
-								9-Ball (SL 1-9)
-							
-Team 1 (Home)
--- Select Team --
-VS
-Team 2 (Away)
--- Select Team --
-Iterations
-Run Simulation
-Match Projections & Breakdown
-Estimated Match Win Probability (Team 1)
-—
-Active Configuration
-0 pairings calculated
-No active analytics. Select teams and execute computation.
-Copy Log Data Backup System JSON
-APA Equalizer® & Captain Brain Unified Engine • Fully sandboxed offline PWA environment[span_8](start_span)[span_8](end_span)[span_9](start_span)[span_9](end_span)[span_10](start_span)[span_10](end_span)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captain's Chair v2</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c3e50">
+</head>
+<body>
+    <header>
+        <h1>Captain's Chair</h1>
+        <nav>
+            <button onclick="showTab('roster')">Roster</button>
+            <button onclick="showTab('lineup')">Lineup (23-Rule)</button>
+            <button onclick="showTab('scoring')">Live Scoring</button>
+            <button onclick="showTab('data')">Data</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="roster" class="tab-content active">
+            <h2>Manage Roster</h2>
+            <div class="input-group">
+                <input type="text" id="playerName" placeholder="Player Name">
+                <input type="number" id="playerSL" placeholder="Skill Level (1-9)" min="1" max="9">
+                <select id="playerTeam">
+                    <option value="home">Home Team</option>
+                    <option value="away">Away Team</option>
+                </select>
+                <button onclick="addPlayer()">Add Player</button>
+            </div>
+
+            <div class="roster-grid">
+                <div>
+                    <h3>Home Team</h3>
+                    <ul id="homeRoster" class="player-list"></ul>
+                </div>
+                <div>
+                    <h3>Away Team</h3>
+                    <ul id="awayRoster" class="player-list"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="lineup" class="tab-content">
+            <h2>APA 23-Rule Lineup Builder</h2>
+            <div class="lineup-status" id="lineupStatus">
+                Total SL: <span id="totalSL">0</span>/23 | Players: <span id="playerCount">0</span>/5
+            </div>
+            <div id="ruleWarning" class="warning hidden">⚠️ Rule Violation: Over 23 points or more than 5 players!</div>
+            
+            <div class="roster-grid">
+                <div>
+                    <h3>Available (Home)</h3>
+                    <ul id="availableHome" class="player-list"></ul>
+                </div>
+                <div>
+                    <h3>Current Lineup</h3>
+                    <ul id="currentLineup" class="player-list"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="scoring" class="tab-content">
+            <h2>Live Match Scoring</h2>
+            <div class="scoring-setup-grid">
+                <div class="match-setup">
+                    <h4>Match 1</h4>
+                    <label>Home: <select id="h1Select"></select></label>
+                    <label>Away: <select id="a1Select"></select></label>
+                    <button onclick="setupMatch(1)">Start Match 1</button>
+                </div>
+                <div class="match-setup">
+                    <h4>Match 2</h4>
+                    <label>Home: <select id="h2Select"></select></label>
+                    <label>Away: <select id="a2Select"></select></label>
+                    <button onclick="setupMatch(2)">Start Match 2</button>
+                </div>
+                 <div class="match-setup">
+                    <h4>Match 3</h4>
+                    <label>Home: <select id="h3Select"></select></label>
+                    <label>Away: <select id="a3Select"></select></label>
+                    <button onclick="setupMatch(3)">Start Match 3</button>
+                </div>
+                 <div class="match-setup">
+                    <h4>Match 4</h4>
+                    <label>Home: <select id="h4Select"></select></label>
+                    <label>Away: <select id="a4Select"></select></label>
+                    <button onclick="setupMatch(4)">Start Match 4</button>
+                </div>
+                 <div class="match-setup">
+                    <h4>Match 5</h4>
+                    <label>Home: <select id="h5Select"></select></label>
+                    <label>Away: <select id="a5Select"></select></label>
+                    <button onclick="setupMatch(5)">Start Match 5</button>
+                </div>
+            </div>
+
+            <div class="scoring-status-card" id="scoringStatusCard">
+                <p>Team Score: <span id="teamTotalHome">0</span> - <span id="teamTotalAway">0</span></p>
+                <button onclick="finalizeMatch()" id="finalizeMatchBtn" class="danger-btn hidden">Finalize Match</button>
+            </div>
+
+            <div id="liveScoringArea" class="live-scoring-area hidden">
+                <h3 id="currentScoringMatchTitle">Scoring: Match X</h3>
+                <div class="live-match-interface">
+                    <div class="player-score-block">
+                        <span id="hPlayerName" class="player-name"></span> (<span id="hPlayerSL"></span>)
+                        <div class="game-counter">
+                            <button onclick="scoreGame('home', -1)">-</button>
+                            <span id="hGamesWon" class="games-won">0</span>
+                            <button onclick="scoreGame('home', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="vs-text">VS</div>
+                    <div class="player-score-block">
+                        <span id="aPlayerName" class="player-name"></span> (<span id="aPlayerSL"></span>)
+                        <div class="game-counter">
+                            <button onclick="scoreGame('away', -1)">-</button>
+                            <span id="aGamesWon" class="games-won">0</span>
+                            <button onclick="scoreGame('away', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="score-controls">
+                    <button onclick="declareIndividualWinner('home')">Home Won Match</button>
+                    <button onclick="declareIndividualWinner('away')">Away Won Match</button>
+                    <button onclick="toggleForfeitMatch('home')" class="warning-btn">Forfeit for Home</button>
+                    <button onclick="toggleForfeitMatch('away')" class="warning-btn">Forfeit for Away</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="data" class="tab-content">
+            <h2>Data Management</h2>
+            <p>All data is saved locally in your browser.</p>
+            <button onclick="exportData()">Export JSON</button>
+            <hr>
+            <h3>Import Data</h3>
+            <input type="file" id="importFile" accept=".json">
+            <button onclick="importData()">Import</button>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
